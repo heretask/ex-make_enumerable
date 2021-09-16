@@ -22,7 +22,6 @@ defmodule MakeEnumerable do
 
   """
 
-
   defmacro __using__(_options) do
     quote do
       import unquote(__MODULE__)
@@ -33,34 +32,43 @@ defmodule MakeEnumerable do
   defmacro __before_compile__(_env) do
     quote do
       defimpl Enumerable, for: __MODULE__ do
-        def reduce(map, acc, fun) do
-          map = :maps.without([:"__struct__"], map)
-          do_reduce(:maps.to_list(map), acc, fun)
+        def count(struct) do
+          map =
+            struct
+            |> Map.from_struct()
+
+          {:ok, map_size(map)}
         end
 
-        defp do_reduce(_,     {:halt, acc}, _fun),   do: {:halted, acc}
-        defp do_reduce(list,  {:suspend, acc}, fun), do: {:suspended, acc, &do_reduce(list, &1, fun)}
-        defp do_reduce([],    {:cont, acc}, _fun),   do: {:done, acc}
-        defp do_reduce([h|t], {:cont, acc}, fun),    do: do_reduce(t, fun.(h, acc), fun)
+        def member?(struct, {key, value}) do
+          map =
+            struct
+            |> Map.from_struct()
 
-        def member?(map, {:"__struct__", value}) do
-          {:ok, false}
-        end
-
-        def member?(map, {key, value}) do
-          {:ok, match?({:ok, ^value}, :maps.find(key, map))}
+          {:ok, match?(%{^key => ^value}, map)}
         end
 
         def member?(_map, _other) do
           {:ok, false}
         end
 
-        def count(map) do
-          {:ok, map_size(map) - 1}
+        def slice(struct) do
+          map =
+            struct
+            |> Map.from_struct()
+
+          size = map_size(map)
+          {:ok, size, &Enumerable.List.slice(:maps.to_list(map), &1, &2, size)}
         end
 
+        def reduce(struct, acc, fun) do
+          map =
+            struct
+            |> Map.from_struct()
+
+          Enumerable.List.reduce(:maps.to_list(map), acc, fun)
+        end
       end
     end
   end
-
 end

@@ -4,7 +4,7 @@ defmodule MakeEnumerable.Mixfile do
   def project do
     [
       app: :make_enumerable,
-      version: "0.0.1",
+      version: "0.0.2",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       consolidate_protocols: Mix.env != :test,
