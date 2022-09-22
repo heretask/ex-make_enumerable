@@ -56,9 +56,8 @@ defmodule MakeEnumerable do
           map =
             struct
             |> Map.from_struct()
-
-          size = map_size(map)
-          {:ok, size, &Enumerable.List.slice(:maps.to_list(map), &1, &2, size)}
+          
+          Enumerable.Map.slice(map)
         end
 
         def reduce(struct, acc, fun) do
